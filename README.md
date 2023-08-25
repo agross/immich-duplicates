@@ -68,7 +68,7 @@ Find image duplicates in Immich.
    }
 
    # This needs to be set in the location block.
-   add_header 'Access-Control-Allow-Origin' '*';
+   add_header 'Access-Control-Allow-Origin' '*' always;
    ```
 
    For Traefik, add the CORS middleware to the router serving Immich.
