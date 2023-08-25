@@ -8,5 +8,6 @@
 .key {
   border: 1px solid greenyellow;
   border-radius: 2px;
+  font-family: monospace
 }
 </style>

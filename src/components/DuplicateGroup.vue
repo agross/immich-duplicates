@@ -16,7 +16,7 @@ const props = defineProps<{
 
 const msg = ref('')
 
-const data = useDataStore();
+const data = useDataStore()
 
 const config = useApiStore().config
 const albumApi = new immich.AlbumApi(config)
@@ -99,6 +99,9 @@ async function keepBestAsset() {
   data.removeGroup(props.groupId)
 }
 
+function ignore() {
+  data.removeGroup(props.groupId)
+}
 
 function keyDown(ev: KeyboardEvent) {
   switch (ev.key) {
@@ -128,6 +131,7 @@ await Promise.all([
   <div>
     <p>Group {{ groupId }} with {{ assetIds.length }} assets</p>
     <button @click="keepBestAsset()">Keep best asset <KeyChar>K</KeyChar></button>
+    <button @click="ignore()">Ignore <KeyChar>I</KeyChar></button>
     <p v-if="msg.length">{{ msg }}</p>
     <div class="assets">
       <ImmichAsset
