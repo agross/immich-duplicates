@@ -105,10 +105,13 @@ function ignore() {
 }
 
 function keyDown(ev: KeyboardEvent) {
-  switch (ev.key) {
+  switch (ev.key.toLowerCase()) {
     case 'k':
-    case 'K':
       keepBestAsset()
+      break
+
+    case 'i':
+      ignore()
       break
   }
 }
