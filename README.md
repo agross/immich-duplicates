@@ -1,6 +1,6 @@
 # immich-duplicates
 
-Find image duplicates in Immich.
+Find image and video duplicates in Immich.
 
 1. Install [findimagedupes](https://gitlab.com/opennota/findimagedupes).
    Alternatively, you may use docker as outlined in the next step.
@@ -103,7 +103,16 @@ Find image duplicates in Immich.
 1. All data (API key, endpoint URL, duplicate groups) is stored locally in your
    browser.
 
-   * The best duplicate (with the green border) is determined by file size only.
+   * If you follow the instructions above, duplicates will be determined by
+     their downsized (but still large) JPEG thumbnail. Videos will also be
+     considered, but only by their thumbnail image (= 1 frame of the video).
+   * For each thumbnail a perceptive hash will be computed. Images with the same
+     perceptive hash would be considered the same by the human eye. Currently
+     hashes are compared using strict equality, there is no way to allow
+     deviation from equality by e.g. by allowing the Hamming distance of two
+     hash values to be `> 0`. I accept pull requests ;-)
+   * The best duplicate (with the green border, displayed first) is determined
+     by file size only. I accept pull requests!
    * If you click "Keep best asset" for the currently displayed group:
      * The best asset will be added to all albums of the group's other
        ("non-best") assets
