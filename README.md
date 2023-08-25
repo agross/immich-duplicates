@@ -100,6 +100,20 @@ Find image duplicates in Immich.
 
    ![Sample screenshot](img/sample.png)
 
+1. All data (API key, endpoint URL, duplicate groups) is stored locally in your
+   browser.
+
+   * The best duplicate (with the green border) is determined by file size only.
+   * If you click "Keep best asset" for the currently displayed group:
+     * The best asset will be added to all albums of the group's other
+       ("non-best") assets
+     * The best asset will become a favorite if any asset in the group is a
+       favorite
+     * All "non-best" assets will be deleted
+     * The group's information will be purged from your browser
+   * If you ignore a duplicate group the group's information will be purged from
+     your browser
+
 ## Recommended IDE Setup
 
 [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
