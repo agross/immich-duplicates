@@ -35,17 +35,18 @@ async function fetchMetadata(id: string): Promise<immich.AssetResponseDto> {
 const meta = ref<{ [assetId: string]: immich.AssetResponseDto }>({})
 const albums = ref<{ [assetId: string]: immich.AlbumResponseDto[] }>({})
 
-const bestAssetId = computed(
-  () =>
-    Object.keys(meta.value)
-      .sort((a, b) => {
-        const left = meta.value[a]
-        const right = meta.value[b]
+const assetIdsBySize = computed(() =>
+  Object.keys(meta.value)
+    .sort((a, b) => {
+      const left = meta.value[a]
+      const right = meta.value[b]
 
-        return left.exifInfo!.fileSizeInByte! - right.exifInfo!.fileSizeInByte!
-      })
-      .reverse()[0]
+      return left.exifInfo!.fileSizeInByte! - right.exifInfo!.fileSizeInByte!
+    })
+    .reverse()
 )
+
+const bestAssetId = computed(() => assetIdsBySize.value[0])
 
 async function keepBestAsset() {
   const keep = bestAssetId.value
@@ -135,7 +136,7 @@ await Promise.all([
     <p v-if="msg.length">{{ msg }}</p>
     <div class="assets">
       <ImmichAsset
-        v-for="assetId in assetIds"
+        v-for="assetId in assetIdsBySize"
         :key="assetId"
         :asset-id="assetId"
         :meta="meta[assetId]"
