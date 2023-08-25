@@ -83,7 +83,7 @@ Find image and video duplicates in Immich.
    ```
 
 1. Generate an API key for your account on the Immich web UI and save it.
-1. Build and run the docker image for the duplicate browser.
+1. Run the docker image for the duplicate browser.
 
    ```sh
    $ docker container run --rm --publish 8080:80 ghcr.io/agross/immich-duplicates-browser
