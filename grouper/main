@@ -1,0 +1,42 @@
+#!/usr/bin/env ruby
+
+require 'bundler/setup'
+
+require 'json'
+require 'sqlite3'
+
+db = SQLite3::Database.new('./data/dupes.db')
+
+begin
+  fingerprints = db.query(<<~SQL)
+    SELECT
+      [fp]
+    FROM
+      [fingerprints]
+    GROUP BY
+      [fp]
+    HAVING
+      COUNT([fp]) > 1
+  SQL
+
+
+  groups = fingerprints.each_with_object({}) do |fp, hsh|
+    paths = db.query(<<~SQL, [fp])
+      SELECT
+        [path]
+      FROM
+        [fingerprints]
+      WHERE
+        [fp] = ?
+    SQL
+
+    hsh[fp] = paths.map { |p| File.basename(p[0], '.*') }
+  ensure
+    paths.close unless paths.nil?
+  end
+
+  puts "#{groups.keys.count} duplicate groups"
+  IO.write('./data/dupes.json', JSON.pretty_generate(groups))
+ensure
+  fingerprints.close unless fingerprints.nil?
+end
