@@ -10,3 +10,19 @@ a {
   color: hsla(160, 100%, 37%, 1);
   transition: 0.4s;
 }
+
+button {
+  padding: .5rem;
+  margin: .5rem;
+  margin-left: 0;
+  border: 2px solid var(--color-border);
+  border-radius: 5px;
+
+  color: var(--vt-c-text-dark-2);
+  background-color: var(--vt-c-divider-dark-2);
+}
+
+button:hover {
+  color: yellowgreen;
+  border-color: yellowgreen;
+}

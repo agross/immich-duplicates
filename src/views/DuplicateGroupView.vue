@@ -5,6 +5,7 @@ import { useDataStore } from '@/stores/data'
 import router from '@/router'
 
 import DuplicateGroup from '../components/DuplicateGroup.vue'
+import KeyChar from '../components/KeyChar.vue'
 
 const props = defineProps<{
   id: string | undefined
@@ -77,16 +78,26 @@ onBeforeUnmount(() => {
   <main>
     <header>{{ Object.keys(data.duplicates).length }} Groups</header>
 
-    <button :disabled="hasPrevious() == undefined" @click="previous()">← Previous</button>
-    <button :disabled="hasNext() === undefined" @click="next()">Next →</button>
+    <button :disabled="hasPrevious() == undefined" @click="previous()">
+      <KeyChar>←</KeyChar>
+      Previous
+    </button>
+    <button :disabled="hasNext() === undefined" @click="next()">Next <KeyChar>→</KeyChar></button>
     <section>
       <DuplicateGroup :key="groupId" :group-id="groupId" :asset-ids="data.duplicates[groupId]" />
     </section>
   </main>
 </template>
 
+<style>
+.key {
+  border: 1px solid yellowgreen;
+  padding: 0.2rem;
+}
+</style>
+
 <style scoped>
-button[disabled]{
+button[disabled] {
   display: none;
 }
 </style>
