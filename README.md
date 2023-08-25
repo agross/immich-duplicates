@@ -71,7 +71,7 @@ Find image duplicates in Immich.
    $ docker container run --rm --publish 8080:80 ghcr.io/agross/immich-duplicates-browser
    ```
 
-1. Navigate to [http://localhost:8080].
+1. Navigate to [http://localhost:8080](http://localhost:8080).
 1. On the setup screen, paste your Immich data.
 
    * API endpoint URL, e.g. `https://immich.example.com/api`
