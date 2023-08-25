@@ -97,7 +97,21 @@ async function keepBestAsset() {
   }
 
   // 4. Remove from Vue store.
-  data.removeGroup(props.groupId)
+  ignore()
+}
+
+async function deleteAll() {
+  const response = await assetApi.deleteAsset({ ids: props.assetIds })
+  const failures = response.data.filter((x) => x.status !== 'SUCCESS')
+  if (failures.length) {
+    msg.value = `Could not delete ${failures
+      .map((x) => x.id)
+      .map((id) => meta.value[id].originalFileName)
+      .join()}`
+    return
+  }
+
+  ignore()
 }
 
 function ignore() {
@@ -142,6 +156,7 @@ try {
     <p>Group {{ groupId }} with {{ assetIds.length }} assets</p>
     <button @click="keepBestAsset()">Keep best asset <KeyChar>K</KeyChar></button>
     <button @click="ignore()">Ignore <KeyChar>I</KeyChar></button>
+    <button @click="deleteAll()">Delete all</button>
     <p v-if="msg.length">{{ msg }}</p>
     <div class="assets">
       <Suspense>
