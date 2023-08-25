@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeMount, onBeforeUnmount, onErrorCaptured, ref } from 'vue'
 
 import { useApiStore } from '@/stores/api'
 import { useDataStore } from '@/stores/data'
@@ -65,7 +65,7 @@ async function keepBestAsset() {
   try {
     await Promise.all(done)
   } catch (err: any) {
-    msg.value = `Could not add assets to album: ${err.message}`
+    msg.value = `Could not add best asset ${keep} to album: ${err.message}`
     return
   }
 
@@ -79,7 +79,7 @@ async function keepBestAsset() {
       try {
         await assetApi.updateAsset(keep, { isFavorite: true })
       } catch (err: any) {
-        msg.value = `Could not make ${keep} a favorite: ${err.message}`
+        msg.value = `Could not make best asset ${keep} a favorite: ${err.message}`
         return
       }
     }
@@ -124,11 +124,17 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', keyDown)
 })
 
-// https://stackoverflow.com/a/75325718/149264
-await Promise.all([
-  ...props.assetIds.map(async (assetId) => (meta.value[assetId] = await fetchMetadata(assetId))),
-  ...props.assetIds.map(async (assetId) => (albums.value[assetId] = await fetchAlbumInfo(assetId)))
-])
+try {
+  // https://stackoverflow.com/a/75325718/149264
+  await Promise.all([
+    ...props.assetIds.map(async (assetId) => (meta.value[assetId] = await fetchMetadata(assetId))),
+    ...props.assetIds.map(
+      async (assetId) => (albums.value[assetId] = await fetchAlbumInfo(assetId))
+    )
+  ])
+} catch (err: any) {
+  // ignore
+}
 </script>
 
 <template>
@@ -138,14 +144,17 @@ await Promise.all([
     <button @click="ignore()">Ignore <KeyChar>I</KeyChar></button>
     <p v-if="msg.length">{{ msg }}</p>
     <div class="assets">
-      <ImmichAsset
-        v-for="assetId in assetIdsBySize"
-        :key="assetId"
-        :asset-id="assetId"
-        :meta="meta[assetId]"
-        :albums="albums[assetId]"
-        :best="bestAssetId == assetId"
-      />
+      <Suspense>
+        <ImmichAsset
+          v-for="assetId in assetIdsBySize"
+          :key="assetId"
+          :asset-id="assetId"
+          :meta="meta[assetId]"
+          :albums="albums[assetId]"
+          :best="bestAssetId == assetId"
+        />
+        <template #fallback> Loading... </template>
+      </Suspense>
     </div>
   </div>
 </template>
