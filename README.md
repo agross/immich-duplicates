@@ -5,8 +5,8 @@ Find image and video duplicates in Immich.
 1. Install [findimagedupes](https://gitlab.com/opennota/findimagedupes).
    Alternatively, you may use docker as outlined in the next step.
 
-1. Run is against your Immich thumbnails directory scanning the large JPEG
-   thumbnails.
+1. Run `findimagedupes` against your Immich thumbnails directory scanning the
+   large JPEG thumbnails.
 
    ```sh
    $ "$HOME/go/bin/findimagedupes" --prune \
