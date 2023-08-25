@@ -78,6 +78,9 @@ onBeforeUnmount(() => {
   <main>
     <header>{{ Object.keys(data.duplicates).length }} Groups</header>
 
+    <button @click="router.push('/setup')">
+      Setup
+    </button>
     <button :disabled="hasPrevious() == undefined" @click="previous()">
       <KeyChar>←</KeyChar>
       Previous
