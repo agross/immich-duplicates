@@ -78,6 +78,10 @@ Find image duplicates in Immich.
    * API key generated above
    * The contents of the `dupes.json` file generated above
 
+1. If everything works you should see something like this:
+
+   ![Sample screenshot](img/sample.png)
+
 ## Recommended IDE Setup
 
 [VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
