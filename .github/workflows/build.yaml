@@ -11,6 +11,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          - context: ./findimagedupes
+            image: ghcr.io/${{ github.repository }}-findimagedupes
+            title: ${{ github.event.repository.name }}-findimagedupes
           - context: ./grouper
             image: ghcr.io/${{ github.repository }}-grouper
             title: ${{ github.event.repository.name }}-grouper

@@ -3,6 +3,8 @@
 Find image duplicates in Immich.
 
 1. Install [findimagedupes](https://gitlab.com/opennota/findimagedupes).
+   Alternatively, you may use docker as outlined in the next step.
+
 1. Run is against your Immich thumbnails directory scanning the large JPEG
    thumbnails.
 
@@ -12,7 +14,23 @@ Find image duplicates in Immich.
                                    --prune \
                                    --no-compare \
                                    --exclude '\.webp$' \
-                                   /immich/app/thumbs/<your user ID>
+                                   /path/to/immich/thumbs/<your user ID>
+   ```
+
+   Or, if you don't want to compile `findimagedupes` yourself:
+
+   ```sh
+   $ docker container run \
+                      --rm \
+                      --volume /path/to/immich/thumbs/:/thumbs/ \
+                      --volume "$PWD:/output/" \
+                      ghcr.io/agross/immich-duplicates-findimagedupes \
+                      --prune \
+                      --fingerprints /output/dupes.db \
+                      --prune \
+                      --no-compare \
+                      --exclude '\.webp$' \
+                      /thumbs/<your user ID>
    ```
 
 1. The resulting `dupes.db` is a SQLite database. Group the duplicates as a
@@ -23,12 +41,12 @@ Find image duplicates in Immich.
    ```sh
    $ docker container run \
                       --rm \
-                      --volume /directory/containing/dupes.db/:/app/data/ \
+                      --volume /path/containing/dupes.db/:/app/data/ \
                       ghcr.io/agross/immich-duplicates-grouper
    42 duplicate groups
    ```
 
-   In `/directory/containing/dupes.db/` you will now find a `dupes.json` file.
+   In `/path/containing/dupes.db/` you will now find a `dupes.json` file.
    Its contents will later be required to be pasted into the duplicate browser.
 
 1. Configure the Immich server to accept API calls from foreign domains (CORS).
