@@ -3,12 +3,20 @@ import { computed } from 'vue'
 
 import * as immich from 'immich-sdk'
 
+import { useApiStore } from '@/stores/api'
+
 const props = defineProps<{
   assetId: string
   meta: immich.AssetResponseDto
   albums: immich.AlbumResponseDto[]
   best: boolean
 }>()
+
+const config = useApiStore().config
+
+function albumPage(albumId: string) {
+  return `${config.basePath}/../albums/${albumId}`
+}
 
 const fileSize = computed(() => {
   const bytes = props.meta?.exifInfo?.fileSizeInByte
@@ -37,7 +45,11 @@ const isFavorite = computed(() => props.meta.isFavorite)
     <div v-if="albums?.length > 0">
       <p>Albums:</p>
       <ul>
-        <li v-for="album in albums" :key="album.id">{{ album.albumName }}</li>
+        <li v-for="album in albums" :key="album.id">
+          <a :href="albumPage(album.id)" target="_blank">
+            {{ album.albumName }}
+          </a>
+        </li>
       </ul>
     </div>
     <div v-else>
