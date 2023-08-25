@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue'
 
 import { useApiStore } from '@/stores/api'
 import { useDataStore } from '@/stores/data'
 
 import * as immich from 'immich-sdk'
 import ImmichAsset from './ImmichAsset.vue'
+
+import KeyChar from './KeyChar.vue'
 
 const props = defineProps<{
   groupId: string
@@ -97,6 +99,24 @@ async function keepBestAsset() {
   data.removeGroup(props.groupId)
 }
 
+
+function keyDown(ev: KeyboardEvent) {
+  switch (ev.key) {
+    case 'k':
+    case 'K':
+      keepBestAsset()
+      break
+  }
+}
+
+onBeforeMount(() => {
+  window.addEventListener('keydown', keyDown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', keyDown)
+})
+
 // https://stackoverflow.com/a/75325718/149264
 await Promise.all([
   ...props.assetIds.map(async (assetId) => (meta.value[assetId] = await fetchMetadata(assetId))),
@@ -107,7 +127,7 @@ await Promise.all([
 <template>
   <div>
     <p>Group {{ groupId }} with {{ assetIds.length }} assets</p>
-    <button @click="keepBestAsset()">Keep best asset</button>
+    <button @click="keepBestAsset()">Keep best asset <KeyChar>K</KeyChar></button>
     <p v-if="msg.length">{{ msg }}</p>
     <div class="assets">
       <ImmichAsset
