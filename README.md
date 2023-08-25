@@ -18,18 +18,18 @@ Find image duplicates in Immich.
 1. The resulting `dupes.db` is a SQLite database. Group the duplicates as a
    JSON document using the provided Ruby script.
 
-   The extractor currently only supports exact matches by perceptive hash.
+   The grouper currently only supports exact matches by perceptive hash.
 
    ```sh
    $ docker container run \
                       --rm \
-                      --volume /directory/containing/dupes.db:/app/data/ \
+                      --volume /directory/containing/dupes.db/:/app/data/ \
                       ghcr.io/agross/immich-duplicates-grouper
    42 duplicate groups
    ```
 
-   In `/directory/containing/` you will now find a `dupes.json` file. Its
-   contents will later be required into the duplicate browser.
+   In `/directory/containing/dupes.db/` you will now find a `dupes.json` file.
+   Its contents will later be required to be pasted into the duplicate browser.
 
 1. Configure the Immich server to accept API calls from foreign domains (CORS).
 
