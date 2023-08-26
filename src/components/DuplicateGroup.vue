@@ -51,7 +51,7 @@ const assetIdsBySize = computed(() =>
       const left = meta.value[a]
       const right = meta.value[b]
 
-      return left.exifInfo!.fileSizeInByte! - right.exifInfo!.fileSizeInByte!
+      return (left.exifInfo?.fileSizeInByte || 0) - (right.exifInfo?.fileSizeInByte || 0)
     })
     .reverse()
 )
