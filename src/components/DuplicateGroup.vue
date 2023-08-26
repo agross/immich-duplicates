@@ -174,7 +174,7 @@ try {
 } catch (err: any) {
   const persons = await Promise.all(props.assetIds.map(async (assetId) => await isPerson(assetId)))
 
-  if (persons.filter((x) => x === true)) {
+  if (persons.filter((x) => x === true).length > 0) {
     ignore()
   }
 }
