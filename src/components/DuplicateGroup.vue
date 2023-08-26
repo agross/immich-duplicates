@@ -58,6 +58,17 @@ const assetIdsBySize = computed(() =>
 
 const bestAssetId = computed(() => assetIdsBySize.value[0])
 
+const fileNamesAreConsideredEqual = computed(() => {
+  // 2016-09-18 18.21.51
+  // would be considered equal to
+  // IMG_20160918_182149
+  const digitsOnly = Object.values(meta.value)
+    .map((x) => x.originalFileName)
+    .map((x) => x.replace(/\D/g, ''))
+
+  return [...new Set(digitsOnly)].length === 1
+})
+
 async function keepBestAsset() {
   const keep = bestAssetId.value
   const remove = props.assetIds.filter((x) => x !== keep)
@@ -185,6 +196,7 @@ try {
           :meta="meta[assetId]"
           :albums="albums[assetId]"
           :best="bestAssetId == assetId"
+          :highlight-file-name="fileNamesAreConsideredEqual"
         />
         <template #fallback> Loading... </template>
       </Suspense>

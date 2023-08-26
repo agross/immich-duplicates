@@ -13,6 +13,7 @@ const props = defineProps<{
   meta: immich.AssetResponseDto
   albums: immich.AlbumResponseDto[]
   best: boolean
+  highlightFileName: boolean
 }>()
 
 const imageUrl = ref('')
@@ -66,7 +67,13 @@ onMounted(async () => {
 
     <button @click="downloadAsset">Download</button>
 
-    <AssetMetadata :asset-id="assetId" :meta="meta" :albums="albums" :best="best" />
+    <AssetMetadata
+      :asset-id="assetId"
+      :meta="meta"
+      :albums="albums"
+      :best="best"
+      :highlight-file-name="highlightFileName"
+    />
   </div>
 </template>
 

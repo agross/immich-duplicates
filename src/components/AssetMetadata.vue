@@ -10,6 +10,7 @@ const props = defineProps<{
   meta: immich.AssetResponseDto
   albums: immich.AlbumResponseDto[]
   best: boolean
+  highlightFileName: boolean
 }>()
 
 const config = useApiStore().config
@@ -36,7 +37,11 @@ const isFavorite = computed(() => props.meta.isFavorite)
 
 <template>
   <div class="meta">
-    <p>{{ meta?.type }} {{ meta?.originalFileName }} <span v-if="isFavorite">🥰</span></p>
+    <p>
+      {{ meta?.type }}
+      <span :class="{ highlight: highlightFileName }">{{ meta?.originalFileName }}</span>
+      <span v-if="isFavorite">🥰</span>
+    </p>
     <p>
       <span :class="{ best: best }"> {{ fileSize }} KB</span> from <code>{{ meta?.deviceId }}</code>
     </p>
@@ -60,7 +65,8 @@ const isFavorite = computed(() => props.meta.isFavorite)
 </template>
 
 <style scoped>
-.best {
+.best,
+.highlight {
   color: greenyellow;
 }
 </style>
