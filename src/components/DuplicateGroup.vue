@@ -21,6 +21,7 @@ const data = useDataStore()
 const config = useApiStore().config
 const albumApi = new immich.AlbumApi(config)
 const assetApi = new immich.AssetApi(config)
+const personApi = new immich.PersonApi(config)
 
 async function fetchAlbumInfo(id: string): Promise<immich.AlbumResponseDto[]> {
   const response = await albumApi.getAllAlbums(undefined, id)
@@ -30,6 +31,15 @@ async function fetchAlbumInfo(id: string): Promise<immich.AlbumResponseDto[]> {
 async function fetchMetadata(id: string): Promise<immich.AssetResponseDto> {
   const response = await assetApi.getAssetById(id)
   return response.data
+}
+
+async function isPerson(id: string): Promise<boolean> {
+  try {
+    await personApi.getPerson(id)
+    return true
+  } catch (err: any) {
+    return false
+  }
 }
 
 const meta = ref<{ [assetId: string]: immich.AssetResponseDto }>({})
@@ -138,6 +148,10 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', keyDown)
 })
 
+// Some asset IDs extracted from the files in the Immich /thumbs directory are for
+// people (as determined by machine learning). In this case, we cannot
+// load metadata or album infos and these requests will fail. In case of load
+// errors check if the asset IDs are for people and auto-ignore this group.
 try {
   // https://stackoverflow.com/a/75325718/149264
   await Promise.all([
@@ -147,7 +161,11 @@ try {
     )
   ])
 } catch (err: any) {
-  // ignore
+  const persons = await Promise.all(props.assetIds.map(async (assetId) => await isPerson(assetId)))
+
+  if (persons.filter((x) => x === true)) {
+    ignore()
+  }
 }
 </script>
 
