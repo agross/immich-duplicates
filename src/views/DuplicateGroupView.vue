@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, onBeforeUnmount } from 'vue'
+import { onBeforeMount, onBeforeUnmount } from 'vue'
 
 import { useDataStore } from '@/stores/data'
 import router from '@/router'
@@ -8,51 +8,43 @@ import DuplicateGroup from '../components/DuplicateGroup.vue'
 import KeyChar from '../components/KeyChar.vue'
 
 const props = defineProps<{
-  id: string | undefined
+  index: number
 }>()
 
 const data = useDataStore()
 
-const groupId = computed(() => {
-  if (props.id && data.duplicates[props.id]) {
-    return props.id
+function hasPrevious() {
+  if (props.index > 0) {
+    return props.index - 1
   }
 
-  const firstGroupId = Object.keys(data.duplicates)[0]
-  router.replace(`/${firstGroupId}`)
-  return firstGroupId
-})
-
-function surroundingGroupId(direction: (index: number) => number): string | undefined {
-  const index = Object.keys(data.duplicates).indexOf(groupId.value)
-
-  const surround = direction(index)
-
-  return Object.keys(data.duplicates)[surround]
+  return false
 }
 
 function previous() {
   const previous = hasPrevious()
 
-  if (previous) {
+  if (previous !== false) {
     router.push(`/${previous}`)
   }
 }
 
-function hasPrevious() {
-  return surroundingGroupId((x) => x - 1)
+function hasNext() {
+  const nextIndex = props.index + 1
+
+  if (data.duplicates[nextIndex]) {
+    return nextIndex
+  }
+
+  return false
 }
 
 function next() {
   const next = hasNext()
 
-  if (next) {
+  if (next !== false) {
     router.push(`/${next}`)
   }
-}
-
-function hasNext() {
-  return surroundingGroupId((x) => x + 1)
 }
 
 function keyDown(ev: KeyboardEvent) {
@@ -69,6 +61,7 @@ function keyDown(ev: KeyboardEvent) {
 onBeforeMount(() => {
   window.addEventListener('keydown', keyDown)
 })
+
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', keyDown)
 })
@@ -78,16 +71,18 @@ onBeforeUnmount(() => {
   <main>
     <header>{{ Object.keys(data.duplicates).length }} Groups</header>
 
-    <button @click="router.push('/setup')">
-      Setup
-    </button>
-    <button :disabled="hasPrevious() == undefined" @click="previous()">
+    <button @click="router.push('/setup')">Setup</button>
+    <button :disabled="hasPrevious() === false" @click="previous()">
       <KeyChar>←</KeyChar>
       Previous
     </button>
-    <button :disabled="hasNext() === undefined" @click="next()">Next <KeyChar>→</KeyChar></button>
+    <button :disabled="hasNext() === false" @click="next()">Next <KeyChar>→</KeyChar></button>
     <section>
-      <DuplicateGroup :key="groupId" :group-id="groupId" :asset-ids="data.duplicates[groupId]" />
+      <DuplicateGroup
+        :key="data.duplicates[index].join()"
+        :group-index="index"
+        :asset-ids="data.duplicates[index]"
+      />
     </section>
   </main>
 </template>

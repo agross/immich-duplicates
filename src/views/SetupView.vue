@@ -43,9 +43,7 @@ function setUpStores() {
 
     <h2>JSON document with duplicates</h2>
     <section>
-      <label for="duplicates"
-        >The format is <code>{ [groupId: string]: string[] }</code></label
-      >
+      <label for="duplicates">The format is <code>string[][]</code></label>
       <textarea name="duplicates" v-model="duplicates"></textarea>
     </section>
 
@@ -54,3 +52,24 @@ function setUpStores() {
     <p>{{ message }}</p>
   </main>
 </template>
+
+<style scoped>
+h2 {
+  margin-top: 2rem;
+}
+section {
+  margin-top: 1rem;
+}
+label {
+  display: block;
+}
+
+input,
+textarea {
+  width: 100%;
+}
+
+textarea {
+  height: 20rem;
+}
+</style>

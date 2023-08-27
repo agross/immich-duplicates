@@ -2,14 +2,11 @@ import { defineStore } from 'pinia'
 
 export const useDataStore = defineStore('data', {
   state: () => ({
-    duplicates: {} as { [groupId: string]: string[] }
+    duplicates: [] as string[][]
   }),
   actions: {
-    removeGroup(groupId: string) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { [groupId]: removed, ...rest } = this.duplicates
-
-      this.duplicates = rest
+    removeGroup(groupIndex: number) {
+      this.duplicates.splice(groupIndex, 1)
     }
   },
   persist: true

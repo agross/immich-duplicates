@@ -44,11 +44,15 @@ begin
     paths.reset
 
     hsh[fp] = paths.map { |p| File.basename(p[0], '.*') }
+                   .sort
   ensure
     paths.close unless paths.nil?
   end
 
-  puts "#{groups.keys.count} duplicate groups"
+  # Keep groups with exactly the same elements only once.
+  groups = groups.values.uniq
+
+  puts "#{groups.count} duplicate groups"
   IO.write('./data/dupes.json', JSON.pretty_generate(groups))
 ensure
   fingerprints.close unless fingerprints.nil?

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, onBeforeUnmount, onErrorCaptured, ref } from 'vue'
+import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue'
 
 import { useApiStore } from '@/stores/api'
 import { useDataStore } from '@/stores/data'
@@ -10,7 +10,7 @@ import ImmichAsset from './ImmichAsset.vue'
 import KeyChar from './KeyChar.vue'
 
 const props = defineProps<{
-  groupId: string
+  groupIndex: number
   assetIds: string[]
 }>()
 
@@ -136,7 +136,7 @@ async function deleteAll() {
 }
 
 function ignore() {
-  data.removeGroup(props.groupId)
+  data.removeGroup(props.groupIndex)
 }
 
 function keyDown(ev: KeyboardEvent) {
@@ -182,7 +182,7 @@ try {
 
 <template>
   <div>
-    <p>Group {{ groupId }} with {{ assetIds.length }} assets</p>
+    <p>Group {{ groupIndex }} with {{ assetIds.length }} assets</p>
     <button @click="keepBestAsset()">Keep best asset <KeyChar>K</KeyChar></button>
     <button @click="ignore()">Ignore <KeyChar>I</KeyChar></button>
     <button @click="deleteAll()">Delete all</button>
