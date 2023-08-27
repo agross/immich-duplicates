@@ -1,4 +1,4 @@
-FROM ruby:3-slim
+FROM ruby:3-slim AS build
 
 WORKDIR /app
 
@@ -13,6 +13,12 @@ RUN apt-get update \
     && git clone https://github.com/greycubesgav/sqlite-phhammdist.git \
     && cd sqlite-phhammdist \
     && make
+
+FROM ruby:3-slim AS tuntime
+
+WORKDIR /app
+
+COPY --from=build /app/sqlite-phhammdist/sqlite-phhammdist.so .
 
 COPY Gemfile* ./
 

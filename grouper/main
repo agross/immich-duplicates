@@ -15,7 +15,7 @@ db.enable_load_extension(true)
 
 begin
   db.execute(<<~SQL)
-    SELECT load_extension('/app/sqlite-phhammdist/sqlite-phhammdist.so', 'sqlite3_phhammdist_init');
+    SELECT load_extension('/app/sqlite-phhammdist.so', 'sqlite3_phhammdist_init');
   SQL
 
   fingerprints = db.query(<<~SQL)
