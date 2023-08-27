@@ -36,13 +36,20 @@ Find image and video duplicates in Immich.
 1. The resulting `dupes.db` is a SQLite database. Group the duplicates as a
    JSON document using the provided Ruby script.
 
-   The grouper currently only supports exact matches by perceptive hash.
+   <a id="hamming"></a>You can control the required similarity of the perceptive hashes
+   by specifying an optional parameter setting the
+   [Hamming distance](https://en.wikipedia.org/wiki/Hamming_distance), i.e. the
+   number of bits that may differ for two hashes to be considered equal. The
+   default value is `0` (hashes must be equal).
 
    ```sh
+   # Optional last argument: allow up to 5 bits to differ.
    $ docker container run \
                       --rm \
                       --volume /path/containing/dupes.db/:/app/data/ \
-                      ghcr.io/agross/immich-duplicates-grouper
+                      ghcr.io/agross/immich-duplicates-grouper \
+                      5
+   Hamming distance = 5
    42 duplicate groups
    ```
 
@@ -107,10 +114,11 @@ Find image and video duplicates in Immich.
      their downsized (but still large) JPEG thumbnail. Videos will also be
      considered, but only by their thumbnail image (= 1 frame of the video).
    * For each thumbnail a perceptive hash will be computed. Images with the same
-     perceptive hash would be considered the same by the human eye. Currently
-     hashes are compared using strict equality, there is no way to allow
-     deviation from equality by e.g. by allowing the Hamming distance of two
-     hash values to be `> 0`. I accept pull requests ;-)
+     perceptive hash would be considered the same by the human eye.
+   * The perceptive hashes are compared using strict equality by default. You
+     may allow deviation from strict equality by e.g. by allowing the Hamming
+     distance of two hash values to be `> 0`. Use the optional argument of the
+     [grouper](#hamming).
    * The best duplicate (with the green border, displayed first) is determined
      by file size only. I accept pull requests!
    * If you click "Keep best asset" for the currently displayed group:

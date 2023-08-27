@@ -5,30 +5,43 @@ require 'bundler/setup'
 require 'json'
 require 'sqlite3'
 
+HAMMING_DISTANCE = ARGV[0].to_i || 0
+
+$stdout.sync = true
+$stdout.puts("Hamming distance = #{HAMMING_DISTANCE}")
+
 db = SQLite3::Database.new('./data/dupes.db')
+db.enable_load_extension(true)
 
 begin
-  fingerprints = db.query(<<~SQL)
-    SELECT
-      [fp]
-    FROM
-      [fingerprints]
-    GROUP BY
-      [fp]
-    HAVING
-      COUNT([fp]) > 1
+  db.execute(<<~SQL)
+    SELECT load_extension('/app/sqlite-phhammdist/sqlite-phhammdist.so', 'sqlite3_phhammdist_init');
   SQL
 
+  fingerprints = db.query(<<~SQL)
+    SELECT
+      DISTINCT [fp]
+    FROM
+      [fingerprints]
+  SQL
 
-  groups = fingerprints.each_with_object({}) do |fp, hsh|
-    paths = db.query(<<~SQL, [fp])
+  groups = fingerprints.each_with_object({}).with_index do |(fp, hsh), index|
+    $stdout.print("#{index}\r")
+
+    paths = db.query(<<~SQL, [fp, HAMMING_DISTANCE])
       SELECT
         [path]
       FROM
         [fingerprints]
       WHERE
-        [fp] = ?
+        phhammdist([fp], ?) <= ?
     SQL
+
+    # Ignore groups with a single item.
+    next if paths.count < 2
+
+    # Calling #count above moves the cursor to the end of the result set.
+    paths.reset
 
     hsh[fp] = paths.map { |p| File.basename(p[0], '.*') }
   ensure
