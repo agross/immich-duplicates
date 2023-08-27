@@ -92,13 +92,6 @@ onBeforeUnmount(() => {
   </main>
 </template>
 
-<style>
-.key {
-  border: 1px solid yellowgreen;
-  padding: 0.2rem;
-}
-</style>
-
 <style scoped>
 button[disabled] {
   display: none;
