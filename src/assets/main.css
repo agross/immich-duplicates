@@ -22,7 +22,13 @@ button {
   background-color: var(--vt-c-divider-dark-2);
 }
 
-button:hover {
+button:hover:enabled {
   color: yellowgreen;
   border-color: yellowgreen;
+}
+
+button:disabled {
+  border-color: var(--color-background-mute);
+  color: var(--color-background);
+  background-color: var(--color-background-mute);
 }

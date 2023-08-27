@@ -11,4 +11,8 @@
   border-radius: 2px;
   font-family: monospace
 }
+
+:disabled .key {
+  border: 1px solid var(--color-background);
+}
 </style>

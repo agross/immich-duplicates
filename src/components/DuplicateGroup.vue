@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue'
+import axios, { AxiosError} from 'axios'
 
 import { useApiStore } from '@/stores/api'
 import { useDataStore } from '@/stores/data'
 
 import * as immich from 'immich-sdk'
 import ImmichAsset from './ImmichAsset.vue'
+import ImmichAssetError from './ImmichAssetError.vue'
 
 import KeyChar from './KeyChar.vue'
 
@@ -13,6 +15,14 @@ const props = defineProps<{
   groupIndex: number
   assetIds: string[]
 }>()
+
+type AssetInfo = {
+  meta: immich.AssetResponseDto
+  albums: immich.AlbumResponseDto[]
+}
+
+const loadedAssets = ref(new Map<string, AssetInfo>())
+const assetLoadErrors = ref(new Map<string, string>())
 
 const msg = ref('')
 
@@ -42,18 +52,14 @@ async function isPerson(id: string): Promise<boolean> {
   }
 }
 
-const meta = ref<{ [assetId: string]: immich.AssetResponseDto }>({})
-const albums = ref<{ [assetId: string]: immich.AlbumResponseDto[] }>({})
-
 const assetIdsBySize = computed(() =>
-  Object.keys(meta.value)
-    .sort((a, b) => {
-      const left = meta.value[a]
-      const right = meta.value[b]
-
-      return (left.exifInfo?.fileSizeInByte || 0) - (right.exifInfo?.fileSizeInByte || 0)
-    })
+  [...loadedAssets.value.values()]
+    .map((x) => x.meta)
+    .sort(
+      (left, right) => (left.exifInfo?.fileSizeInByte || 0) - (right.exifInfo?.fileSizeInByte || 0)
+    )
     .reverse()
+    .map((x) => x.id)
 )
 
 const bestAssetId = computed(() => assetIdsBySize.value[0])
@@ -62,72 +68,96 @@ const fileNamesAreConsideredEqual = computed(() => {
   // 2016-09-18 18.21.51
   // would be considered equal to
   // IMG_20160918_182149
-  const digitsOnly = Object.values(meta.value)
+  const digitsOnly = [...loadedAssets.value.values()]
+    .map((x) => x.meta)
     .map((x) => x.originalFileName)
     .map((x) => x.replace(/\D/g, ''))
 
   return [...new Set(digitsOnly)].length === 1
 })
 
+const canKeepBestAsset = computed(() => loadedAssets.value.size > 0)
+
 async function keepBestAsset() {
-  const keep = bestAssetId.value
-  const remove = props.assetIds.filter((x) => x !== keep)
+  if (!canKeepBestAsset.value) {
+    return
+  }
+
+  const keepId = bestAssetId.value
+
+  const keepInfo = loadedAssets.value.get(keepId)
+  if (!keepInfo) {
+    msg.value = `Could not find info for asset to keep ${keepId}`
+    return
+  }
+
+  const removeIds = [...loadedAssets.value.keys()].filter((x) => x !== keepId)
+  const removeInfos = new Map([...loadedAssets.value].filter(([k, v]) => k !== keepId))
 
   // 1. Assign to the same albums as all other assets.
-  const alreadyContainedIn = albums.value[keep].map((dto) => dto.id)
-  const albumIds = Object.values(albums.value)
+  const alreadyContainedIn = keepInfo.albums.map((dto) => dto.id)
+  const albumIds = [...loadedAssets.value.values()]
+    .map((x) => x.albums)
     .flatMap((x) => x.map((dto) => dto.id))
     .filter((x) => !alreadyContainedIn.includes(x))
 
   const done = [...new Set(albumIds)].map(async (albumId) => {
-    await albumApi.addAssetsToAlbum(albumId, { ids: [keep] } as unknown as immich.AddAssetsDto)
+    await albumApi.addAssetsToAlbum(albumId, { ids: [keepId] } as unknown as immich.AddAssetsDto)
   })
 
   try {
     await Promise.all(done)
   } catch (err: any) {
-    msg.value = `Could not add best asset ${keep} to album: ${err.message}`
+    msg.value = `Could not add best asset ${keepId} to album: ${err.message}`
     return
   }
 
-  // 2. Favorite if any in the group is a favorite, unless it's already a favorite.
-  if (!meta.value[keep].isFavorite) {
-    const favorite = remove
-      .map((x) => meta.value[x].isFavorite)
+  // 2. Favorite if any in the group is a favorite, unless the kept asset
+  // already is a favorite.
+  if (!keepInfo.meta.isFavorite) {
+    const anyFavorite = [...removeInfos.values()]
+      .map((x) => x.meta.isFavorite)
       .reduce((acc, el) => acc || el, false)
 
-    if (favorite) {
+    if (anyFavorite) {
       try {
-        await assetApi.updateAsset(keep, { isFavorite: true })
+        await assetApi.updateAsset(keepId, { isFavorite: true })
       } catch (err: any) {
-        msg.value = `Could not make best asset ${keep} a favorite: ${err.message}`
+        msg.value = `Could not make best asset ${keepId} a favorite: ${err.message}`
         return
       }
     }
   }
 
   // 3. Delete other assets.
-  const response = await assetApi.deleteAsset({ ids: remove })
-  const failures = response.data.filter((x) => x.status !== 'SUCCESS')
-  if (failures.length) {
-    msg.value = `Could not delete ${failures
-      .map((x) => x.id)
-      .map((id) => meta.value[id].originalFileName)
-      .join()}`
-    return
+  if (removeIds.length) {
+    const response = await assetApi.deleteAsset({ ids: removeIds })
+    const failures = response.data.filter((x) => x.status !== 'SUCCESS')
+    if (failures.length) {
+      msg.value = `Could not delete ${failures
+        .map((x) => x.id)
+        .map((id) => removeInfos.get(id)?.meta.originalFileName)
+        .join()}`
+      return
+    }
   }
-
   // 4. Remove from Vue store.
   ignore()
 }
 
+const canDeleteAll = computed(() => loadedAssets.value.size > 0)
+
 async function deleteAll() {
-  const response = await assetApi.deleteAsset({ ids: props.assetIds })
+  if (!canDeleteAll.value) {
+    return
+  }
+
+  const response = await assetApi.deleteAsset({ ids: [...loadedAssets.value.keys()] })
   const failures = response.data.filter((x) => x.status !== 'SUCCESS')
   if (failures.length) {
     msg.value = `Could not delete ${failures
       .map((x) => x.id)
-      .map((id) => meta.value[id].originalFileName)
+      .map((id) => loadedAssets.value.get(id)?.meta.originalFileName)
       .join()}`
     return
   }
@@ -163,43 +193,66 @@ onBeforeUnmount(() => {
 // people (as determined by machine learning). In this case, we cannot
 // load metadata or album infos and these requests will fail. In case of load
 // errors check if the asset IDs are for people and auto-ignore this group.
-try {
-  // https://stackoverflow.com/a/75325718/149264
-  await Promise.all([
-    ...props.assetIds.map(async (assetId) => (meta.value[assetId] = await fetchMetadata(assetId))),
-    ...props.assetIds.map(
-      async (assetId) => (albums.value[assetId] = await fetchAlbumInfo(assetId))
-    )
-  ])
-} catch (err: any) {
-  const persons = await Promise.all(props.assetIds.map(async (assetId) => await isPerson(assetId)))
 
-  if (persons.filter((x) => x === true).length > 0) {
-    ignore()
+// https://stackoverflow.com/a/75325718/149264
+for (const assetId of props.assetIds) {
+  try {
+    const meta = await fetchMetadata(assetId)
+    const albums = await fetchAlbumInfo(assetId)
+
+    loadedAssets.value.set(assetId, {
+      meta: meta,
+      albums: albums
+    })
+  } catch (err: any) {
+    if (await isPerson(assetId)) {
+      ignore()
+    }
+
+    let message: string = err.message
+
+    if (axios.isAxiosError(err)) {
+      const ae = err as AxiosError
+      const data = ae.response?.data as any
+      message += `: ${data.message}`
+    }
+
+    assetLoadErrors.value.set(assetId, message)
   }
 }
 </script>
 
 <template>
   <div>
-    <p>Group {{ groupIndex }} with {{ assetIds.length }} assets</p>
-    <button @click="keepBestAsset()">Keep best asset <KeyChar>K</KeyChar></button>
+    <p>
+      Group {{ groupIndex }} with {{ assetIds.length }} assets
+      <span class="errors" v-if="assetLoadErrors.size > 0"
+        >{{ assetLoadErrors.size }} failed to load</span
+      >
+    </p>
+    <button @click="keepBestAsset()" :disabled="!canKeepBestAsset">
+      Keep best asset <KeyChar>K</KeyChar>
+    </button>
     <button @click="ignore()">Ignore <KeyChar>I</KeyChar></button>
-    <button @click="deleteAll()">Delete all</button>
+    <button @click="deleteAll()" :disabled="!canDeleteAll">Delete all</button>
     <p v-if="msg.length">{{ msg }}</p>
     <div class="assets">
-      <Suspense>
-        <ImmichAsset
-          v-for="assetId in assetIdsBySize"
-          :key="assetId"
-          :asset-id="assetId"
-          :meta="meta[assetId]"
-          :albums="albums[assetId]"
-          :best="bestAssetId == assetId"
-          :highlight-file-name="fileNamesAreConsideredEqual"
-        />
-        <template #fallback> Loading... </template>
-      </Suspense>
+      <ImmichAsset
+        v-for="assetId in assetIdsBySize"
+        :key="assetId"
+        :asset-id="assetId"
+        :meta="loadedAssets.get(assetId)!.meta"
+        :albums="loadedAssets.get(assetId)!.albums"
+        :best="bestAssetId == assetId"
+        :highlight-file-name="fileNamesAreConsideredEqual"
+      />
+
+      <ImmichAssetError
+        v-for="[assetId, error] in assetLoadErrors"
+        :key="assetId"
+        :asset-id="assetId"
+        :error="error"
+      />
     </div>
   </div>
 </template>
@@ -209,5 +262,9 @@ try {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.errors {
+  color: lightcoral;
 }
 </style>
