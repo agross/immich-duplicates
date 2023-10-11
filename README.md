@@ -13,6 +13,7 @@ Find image and video duplicates in Immich.
                                    --fingerprints dupes.db \
                                    --prune \
                                    --no-compare \
+                                   --recurse \
                                    --exclude '\.webp$' \
                                    /path/to/immich/thumbs/<your user ID>
    ```
@@ -27,7 +28,7 @@ Find image and video duplicates in Immich.
                       ghcr.io/agross/immich-duplicates-findimagedupes \
                       --prune \
                       --fingerprints /output/dupes.db \
-                      --prune \
+                      --recurse \
                       --no-compare \
                       --exclude '\.webp$' \
                       /thumbs/<your user ID>
