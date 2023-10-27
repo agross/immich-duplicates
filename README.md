@@ -127,7 +127,8 @@ Find image and video duplicates in Immich.
        ("non-best") assets
      * The best asset will become a favorite if any asset in the group is a
        favorite
-     * All "non-best" assets will be deleted
+     * All "non-best" assets will be deleted (i.e. moved to Immich's Trash if
+       you have that feature enabled)
      * The group's information will be purged from your browser
    * If you ignore a duplicate group the group's information will be purged from
      your browser
