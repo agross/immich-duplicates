@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue'
-import axios, { AxiosError} from 'axios'
+import axios, { AxiosError } from 'axios'
 
 import { useApiStore } from '@/stores/api'
 import { useDataStore } from '@/stores/data'
@@ -131,16 +131,16 @@ async function keepBestAsset() {
 
   // 3. Delete other assets.
   if (removeIds.length) {
-    const response = await assetApi.deleteAsset({ ids: removeIds })
-    const failures = response.data.filter((x) => x.status !== 'SUCCESS')
-    if (failures.length) {
-      msg.value = `Could not delete ${failures
-        .map((x) => x.id)
+    try {
+      await assetApi.deleteAsset({ ids: removeIds })
+    } catch (err: any) {
+      msg.value = `Could not delete ${removeIds
         .map((id) => removeInfos.get(id)?.meta.originalFileName)
-        .join()}`
+        .join()}: ${err}`
       return
     }
   }
+
   // 4. Remove from Vue store.
   ignore()
 }
