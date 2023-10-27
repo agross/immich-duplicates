@@ -79,6 +79,7 @@ onBeforeUnmount(() => {
     <button :disabled="hasNext() === false" @click="next()">Next <KeyChar>→</KeyChar></button>
     <section>
       <DuplicateGroup
+        v-if="data.duplicates[index]"
         :key="data.duplicates[index].join()"
         :group-index="index"
         :asset-ids="data.duplicates[index]"
