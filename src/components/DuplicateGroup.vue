@@ -152,13 +152,14 @@ async function deleteAll() {
     return
   }
 
-  const response = await assetApi.deleteAsset({ ids: [...loadedAssets.value.keys()] })
-  const failures = response.data.filter((x) => x.status !== 'SUCCESS')
-  if (failures.length) {
-    msg.value = `Could not delete ${failures
-      .map((x) => x.id)
+  const ids = [...loadedAssets.value.keys()]
+
+  try {
+    await assetApi.deleteAsset({ ids: ids })
+  } catch (err: any) {
+    msg.value = `Could not delete ${ids
       .map((id) => loadedAssets.value.get(id)?.meta.originalFileName)
-      .join()}`
+      .join()}: ${err}`
     return
   }
 
