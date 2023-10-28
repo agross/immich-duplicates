@@ -201,6 +201,12 @@ for (const assetId of props.assetIds) {
     const meta = await fetchMetadata(assetId)
     const albums = await fetchAlbumInfo(assetId)
 
+    // Ignore assets in the Immich Trash.
+    // TODO: immich-sdk is behind the server API.
+    if ((meta as any).isTrashed) {
+      continue
+    }
+
     loadedAssets.value.set(assetId, {
       meta: meta,
       albums: albums
@@ -220,6 +226,12 @@ for (const assetId of props.assetIds) {
 
     assetLoadErrors.value.set(assetId, message)
   }
+}
+
+// If there are not enough assets left in the group because trashed assets have
+// been ignored above, ignore the whole group.
+if (loadedAssets.value.size < 2) {
+  ignore()
 }
 </script>
 
