@@ -129,7 +129,7 @@ Find image and video duplicates in Immich.
 
    ![Sample screenshot](img/sample.png)
 
-1. All data (API key, endpoint URL, duplicate groups) is stored locally in your
+1. All data (API key, endpoint URL, base URL, duplicate groups) is stored locally in your
    browser.
 
    * If you follow the instructions above, duplicates will be determined by
