@@ -65,7 +65,7 @@ function setUpLocalhostProxy() {
              name="baseUrlOverride" />
       <p>
         Not required if your Immich server supports CORS. Otherwise, the base
-        address of your Immich server, i.e. the address shown in your Browser's
+        address of your Immich server, i.e. the address shown in your browser's
         address bar after logging into Immich, without trailing
         <code>/photos</code>.<br>
         Example: <code>https://immich.example.com/</code>
