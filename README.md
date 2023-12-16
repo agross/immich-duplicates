@@ -99,21 +99,27 @@ Find image and video duplicates in Immich.
    $ docker container run --rm --publish 8080:80 ghcr.io/agross/immich-duplicates-browser
    ```
 
-   **If you did not enable CORS in the previous step, you need to put a proxy
-   in front of Immich that will serve the CORS headers. The API endpoint URL you
-   enter later needs to change to `http://localhost:8081/api`.**
+   <a name="proxy"></a>
+   **If you did not enable CORS in the previous step, you need add an additional
+   argument to the command above. The API endpoint URL you enter on the setup
+   screen needs to change to `http://localhost:8080/api`.**
+
+   The additional argument `--env IMMICH_URL=https://immich.example.com` must be
+   set to the base address of your Immich installatio. For example:
 
    ```sh
-   $ cd immich-cors-proxy
-   $ ./run https://immich.example.com/
+   $ docker container run \
+                      --env IMMICH_URL=https://immich.example.com \
+                      --rm \
+                      --publish 8080:80 \
+                      ghcr.io/agross/immich-duplicates-browser
    ```
 
 1. Navigate to [http://localhost:8080](http://localhost:8080).
 1. On the setup screen, paste your Immich data.
 
    * API endpoint URL, e.g. `https://immich.example.com/api`
-     (or `http://localhost:8081/api` if the `immich-cors-proxy` was started in
-     the previous step)
+     (or `http://localhost:8080/api`, see [above](#proxy))
    * API key generated above
    * The contents of the `dupes.json` file generated above
 
