@@ -120,6 +120,8 @@ Find image and video duplicates in Immich.
 
    * API endpoint URL, e.g. `https://immich.example.com/api`
      (or `http://localhost:8080/api`, see [above](#proxy))
+   * Immich base URL, e.g. `https://immich.example.com`, only required if the
+     [proxy](#proxy) is used
    * API key generated above
    * The contents of the `dupes.json` file generated above
 

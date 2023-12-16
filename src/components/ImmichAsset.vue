@@ -18,14 +18,13 @@ const props = defineProps<{
 
 const imageUrl = ref('')
 
-const config = api.config
 
 function assetPage() {
-  return `${config.basePath}/../search/?q=${props.meta.originalFileName}`
+  return `${api.baseUrl}/search?q=${props.meta.originalFileName}`
 }
 
 async function downloadAsset() {
-  const response = await new immich.AssetApi(config).downloadFile(props.assetId, undefined, {
+  const response = await new immich.AssetApi(api.config).downloadFile(props.assetId, undefined, {
     method: 'POST',
     responseType: 'blob'
   })
@@ -41,7 +40,7 @@ async function downloadAsset() {
 }
 
 async function fetchThumbnail(id: string): Promise<Blob> {
-  const response = await new immich.AssetApi(config).getAssetThumbnail(
+  const response = await new immich.AssetApi(api.config).getAssetThumbnail(
     id,
     immich.ThumbnailFormat.Webp,
     undefined,

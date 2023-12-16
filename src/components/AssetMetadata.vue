@@ -13,10 +13,10 @@ const props = defineProps<{
   highlightFileName: boolean
 }>()
 
-const config = useApiStore().config
+const api = useApiStore()
 
 function albumPage(albumId: string) {
-  return `${config.basePath}/../albums/${albumId}`
+  return `${api.baseUrl}/albums/${albumId}`
 }
 
 const fileSize = computed(() => {
