@@ -1,0 +1,14 @@
+providers:
+  file:
+    directory: /etc/traefik
+    watch: true
+
+# For the healthcheck.
+ping: {}
+
+log:
+  level: DEBUG
+
+entryPoints:
+  http:
+    address: ":80"

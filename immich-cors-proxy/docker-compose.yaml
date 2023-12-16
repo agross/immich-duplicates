@@ -1,0 +1,13 @@
+services:
+  traefik:
+    image: traefik:latest
+    ports:
+      - 8081:80
+    environment:
+      IMMICH_URL: ${IMMICH_URL:?Please export IMMICH_URL with the base URL of your Immich server, e.g. https://immich.example.com}
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./conf/traefik.yml:/etc/traefik/traefik.yml:ro
+      - ./conf/immich.yml:/etc/traefik/immich.yml:ro
+    healthcheck:
+      test: traefik healthcheck

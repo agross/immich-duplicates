@@ -57,50 +57,63 @@ Find image and video duplicates in Immich.
    In `/path/containing/dupes.db/` you will now find a `dupes.json` file.
    Its contents will later be required to be pasted into the duplicate browser.
 
+1. Generate an API key for your account on the Immich web UI and save it.
+
 1. Configure the Immich server to accept API calls from foreign domains (CORS).
+
+   **If don’t know how to do it, continue with the next step.**
 
    Depending in your web server the setup will differ a bit.
 
-   For nginx, add the following lines to the
-   [`location` serving `/api`](https://github.com/immich-app/immich/blob/main/nginx/templates/default.conf.template#L61):
+   * For **nginx**, add the following lines to the `location` serving `/api`.
 
-   ```conf
-   if ($request_method = 'OPTIONS') {
-     add_header 'Access-Control-Allow-Origin' '*';
-     add_header 'Access-Control-Allow-Methods' 'GET, PUT, POST, DELETE, OPTIONS';
-     add_header 'Access-Control-Allow-Headers' 'X-Api-Key, User-Agent, Content-Type';
-     add_header 'Access-Control-Max-Age' 1728000; # 20 days
-     add_header 'Content-Type' 'text/plain; charset=utf-8';
-     add_header 'Content-Length' 0;
-     return 204;
-   }
+     ```conf
+     if ($request_method = 'OPTIONS') {
+       add_header 'Access-Control-Allow-Origin' '*';
+       add_header 'Access-Control-Allow-Methods' 'GET, PUT, POST, DELETE, OPTIONS';
+       add_header 'Access-Control-Allow-Headers' 'X-Api-Key, User-Agent, Content-Type';
+       add_header 'Access-Control-Max-Age' 1728000; # 20 days
+       add_header 'Content-Type' 'text/plain; charset=utf-8';
+       add_header 'Content-Length' 0;
+       return 204;
+     }
 
-   # This needs to be set in the location block.
-   add_header 'Access-Control-Allow-Origin' '*' always;
-   ```
+     # This needs to be set in the location block.
+     add_header 'Access-Control-Allow-Origin' '*' always;
+     ```
 
-   For Traefik, add the CORS middleware to the router serving Immich.
+   * For **Traefik**, add the CORS middleware to the router serving Immich.
 
-   ```conf
-   traefik.http.routers.immich.middlewares=immich-cors
+     ```conf
+     traefik.http.routers.immich.middlewares=immich-cors
 
-   traefik.http.middlewares.immich-cors.headers.accessControlAllowOriginList=*
-   traefik.http.middlewares.immich-cors.headers.accessControlAllowMethods=GET, PUT, POST, DELETE, OPTIONS
-   traefik.http.middlewares.immich-cors.headers.accessControlAllowHeaders=X-Api-Key, User-Agent, Content-Type
-   traefik.http.middlewares.immich-cors.headers.accessControlMaxAge=1728000
-   ```
+     traefik.http.middlewares.immich-cors.headers.accessControlAllowOriginList=*
+     traefik.http.middlewares.immich-cors.headers.accessControlAllowMethods=GET, PUT, POST, DELETE, OPTIONS
+     traefik.http.middlewares.immich-cors.headers.accessControlAllowHeaders=X-Api-Key, User-Agent, Content-Type
+     traefik.http.middlewares.immich-cors.headers.accessControlMaxAge=1728000
+     ```
 
-1. Generate an API key for your account on the Immich web UI and save it.
 1. Run the docker image for the duplicate browser.
 
    ```sh
    $ docker container run --rm --publish 8080:80 ghcr.io/agross/immich-duplicates-browser
    ```
 
+   **If you did not enable CORS in the previous step, you need to put a proxy
+   in front of Immich that will serve the CORS headers. The API endpoint URL you
+   enter later needs to change to `http://localhost:8081/api`.**
+
+   ```sh
+   $ cd immich-cors-proxy
+   $ ./run https://immich.example.com/
+   ```
+
 1. Navigate to [http://localhost:8080](http://localhost:8080).
 1. On the setup screen, paste your Immich data.
 
    * API endpoint URL, e.g. `https://immich.example.com/api`
+     (or `http://localhost:8081/api` if the `immich-cors-proxy` was started in
+     the previous step)
    * API key generated above
    * The contents of the `dupes.json` file generated above
 

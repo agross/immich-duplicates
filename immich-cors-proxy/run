@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -e
+
+export IMMICH_URL="$1"
+docker compose up
