@@ -20,7 +20,7 @@ const imageUrl = ref('')
 
 
 function assetPage() {
-  return `${api.baseUrl}/search?q=${props.meta.originalFileName}`
+  return `${api.baseUrl}/search?q=${props.meta.originalFileName}&clip=true`
 }
 
 async function downloadAsset() {
