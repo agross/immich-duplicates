@@ -105,7 +105,7 @@ Find image and video duplicates in Immich.
    screen needs to change to `http://localhost:8080/api`.**
 
    The additional argument `--env IMMICH_URL=https://immich.example.com` must be
-   set to the base address of your Immich installatio. For example:
+   set to the base address of your Immich installation. For example:
 
    ```sh
    $ docker container run \
