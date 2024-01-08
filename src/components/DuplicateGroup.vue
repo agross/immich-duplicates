@@ -62,7 +62,44 @@ const assetIdsBySize = computed(() =>
     .map((x) => x.id)
 )
 
-const bestAssetId = computed(() => assetIdsBySize.value[0])
+const calculateBestAssetId = () => {
+  const compareAssets = (a: AssetInfo, b: AssetInfo) => {
+    // A bare-bones sorting function to bump the best-quality asset to the top:
+    // - first, by image resolution
+    // - then, by extension (HEIC over JPG)
+    // - finally, by file size
+    const widthAndHeightA = (a.meta.exifInfo?.exifImageWidth || 0) + (a.meta.exifInfo?.exifImageHeight || 0);
+    const widthAndHeightB = (b.meta.exifInfo?.exifImageWidth || 0) + (b.meta.exifInfo?.exifImageHeight || 0);
+    const extA = a.meta.originalPath ? a.meta.originalPath.split('.').pop()?.toLowerCase() : '';
+    const extB = b.meta.originalPath ? b.meta.originalPath.split('.').pop()?.toLowerCase() : '';
+
+    if (widthAndHeightA !== widthAndHeightB) {
+      return widthAndHeightB - widthAndHeightA;
+    } else {
+      if ((extA === 'heic' && extB?.startsWith('jp') && extB?.endsWith('g'))) {
+        return -1;
+      } else if ((extA?.startsWith('jp') && extA?.endsWith('g') && extB === 'heic')) {
+        return 1;
+      }
+      return (b.meta.exifInfo?.fileSizeInByte || 0) - (a.meta.exifInfo?.fileSizeInByte || 0);
+    }
+  };
+
+  const assetsWithLivePhoto = [...loadedAssets.value.values()].filter(asset => asset.meta.livePhotoVideoId);
+
+  if (assetsWithLivePhoto.length === 1) {
+    // There's only one live photo in this group; return it as best asset
+    return assetsWithLivePhoto[0].meta.id;
+  }
+
+  const selectedAsset = assetsWithLivePhoto.length > 0
+    ? assetsWithLivePhoto.sort(compareAssets)[0] // Return the best live photo
+    : [...loadedAssets.value.values()].sort(compareAssets)[0]; // Return the best photo or video
+
+  return selectedAsset?.meta.id;
+};
+
+const bestAssetId = computed(() => calculateBestAssetId());
 
 const fileNamesAreConsideredEqual = computed(() => {
   // 2016-09-18 18.21.51
@@ -76,8 +113,21 @@ const fileNamesAreConsideredEqual = computed(() => {
   return [...new Set(digitsOnly)].length === 1
 })
 
-const canKeepBestAsset = computed(() => loadedAssets.value.size > 0)
+const durationToSeconds = (durationString: string) => {
+  const [hours, minutes, seconds] = durationString.split(':').map(parseFloat);
+  return hours * 3600 + minutes * 60 + seconds;
+};
 
+const canKeepBestAsset = computed(() => {
+  // We can determine the best asset to keep automatically if a group is:
+  // - a mix a pictures and short (live photo) videos
+  // - all videos that are of equal duration, to within 0.1 seconds
+  let longVideoCount = [...loadedAssets.value.values()].filter((x) => x.meta.type.toLowerCase().includes("video") && durationToSeconds(x.meta.duration) > 4).length
+  let uniqueDurations = [...new Set([...loadedAssets.value.values()].map((x) => durationToSeconds(x.meta.duration)))];
+  let durationRange = Math.max(...uniqueDurations) - Math.min(...uniqueDurations);
+  let pictureCount = [...loadedAssets.value.values()].filter((x) => x.meta.type.toLowerCase().includes("image")).length
+  return loadedAssets.value.size > 0 && (longVideoCount === 0 || (pictureCount === 0 && (uniqueDurations.length === 1 || durationRange < 0.1)))
+})
 async function keepBestAsset() {
   if (!canKeepBestAsset.value) {
     return
