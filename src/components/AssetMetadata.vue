@@ -45,7 +45,7 @@ const isFavorite = computed(() => props.meta.isFavorite)
     <p>
       <span :class="{ best: best }"> {{ fileSize }} KB</span> from <code>{{ meta?.deviceId }}</code>
     </p>
-    <p>{{ resolution }} px</p>
+    <p>{{ resolution }} px<span v-if="meta.livePhotoVideoId">, <span class="highlight">live photo</span></span></p>
     <p v-if="meta?.type === 'VIDEO'">Length: {{ meta?.duration }}</p>
 
     <div v-if="albums?.length > 0">
