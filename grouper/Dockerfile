@@ -14,7 +14,7 @@ RUN apt-get update \
     && cd sqlite-phhammdist \
     && make
 
-FROM ruby:3-slim AS tuntime
+FROM ruby:3-slim AS runtime
 
 WORKDIR /app
 
