@@ -75,17 +75,19 @@ const calculateBestAssetId = () => {
 
     if (widthAndHeightA !== widthAndHeightB) {
       return widthAndHeightB - widthAndHeightA;
-    } else {
-      if ((extA === 'heic' && extB?.startsWith('jp') && extB?.endsWith('g'))) {
-        return -1;
-      } else if ((extA?.startsWith('jp') && extA?.endsWith('g') && extB === 'heic')) {
-        return 1;
-      }
-      return (b.meta.exifInfo?.fileSizeInByte || 0) - (a.meta.exifInfo?.fileSizeInByte || 0);
     }
+    if (extA === 'heic' && extB?.startsWith('jp') && extB?.endsWith('g')) {
+      return -1;
+    }
+    if (extA?.startsWith('jp') && extA?.endsWith('g') && extB === 'heic') {
+      return 1;
+    }
+    return (b.meta.exifInfo?.fileSizeInByte || 0) - (a.meta.exifInfo?.fileSizeInByte || 0);
   };
 
-  const assetsWithLivePhoto = [...loadedAssets.value.values()].filter(asset => asset.meta.livePhotoVideoId);
+  const loadedAssetsArray = [...loadedAssets.value.values()];
+  
+  const assetsWithLivePhoto = loadedAssetsArray.filter(asset => asset.meta.livePhotoVideoId);
 
   if (assetsWithLivePhoto.length === 1) {
     // There's only one live photo in this group; return it as best asset
@@ -94,7 +96,7 @@ const calculateBestAssetId = () => {
 
   const selectedAsset = assetsWithLivePhoto.length > 0
     ? assetsWithLivePhoto.sort(compareAssets)[0] // Return the best live photo
-    : [...loadedAssets.value.values()].sort(compareAssets)[0]; // Return the best photo or video
+    : loadedAssetsArray.sort(compareAssets)[0]; // Return the best photo or video
 
   return selectedAsset?.meta.id;
 };
@@ -122,12 +124,14 @@ const canKeepBestAsset = computed(() => {
   // We can determine the best asset to keep automatically if a group is:
   // - a mix a pictures and short (live photo) videos
   // - all videos that are of equal duration, to within 0.1 seconds
-  let longVideoCount = [...loadedAssets.value.values()].filter((x) => x.meta.type.toLowerCase().includes("video") && durationToSeconds(x.meta.duration) > 4).length
-  let uniqueDurations = [...new Set([...loadedAssets.value.values()].map((x) => durationToSeconds(x.meta.duration)))];
-  let durationRange = Math.max(...uniqueDurations) - Math.min(...uniqueDurations);
-  let pictureCount = [...loadedAssets.value.values()].filter((x) => x.meta.type.toLowerCase().includes("image")).length
+  const loadedAssetsArray = [...loadedAssets.value.values()];
+  const longVideoCount = loadedAssetsArray.filter((x) => x.meta.type.toLowerCase().includes("video") && durationToSeconds(x.meta.duration) > 4).length
+  const uniqueDurations = [...new Set(loadedAssetsArray.map((x) => durationToSeconds(x.meta.duration)))];
+  const durationRange = Math.max(...uniqueDurations) - Math.min(...uniqueDurations);
+  const pictureCount = loadedAssetsArray.filter((x) => x.meta.type.toLowerCase().includes("image")).length
   return loadedAssets.value.size > 0 && (longVideoCount === 0 || (pictureCount === 0 && (uniqueDurations.length === 1 || durationRange < 0.1)))
 })
+
 async function keepBestAsset() {
   if (!canKeepBestAsset.value) {
     return
