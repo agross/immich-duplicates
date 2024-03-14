@@ -3,6 +3,7 @@ FROM golang
 RUN apt-get update \
     && apt-get install \
                --yes \
+               dcraw \
                libmagic-dev \
                libjpeg-dev \
                libpng-dev \
