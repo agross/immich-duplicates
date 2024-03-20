@@ -1,5 +1,11 @@
 location /api {
-  proxy_pass         ${IMMICH_URL};
+  # Required for proxy_pass with variables.
+  resolver ${NGINX_RESOLVER} ipv6=off;
+
+  # Map no-longer supported API to current API endpoint.
+  rewrite ^/api/asset/assetById/(.*)$ /api/asset/$1 break;
+
+  proxy_pass         ${IMMICH_URL}$uri$is_args$args;
 
   proxy_http_version 1.1;
 
