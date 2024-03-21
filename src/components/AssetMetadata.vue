@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import * as immich from 'immich-sdk'
+import * as immich from '@immich/sdk'
 
 import { useApiStore } from '@/stores/api'
+useApiStore().setupDefaults(immich.defaults)
 
 const props = defineProps<{
   assetId: string

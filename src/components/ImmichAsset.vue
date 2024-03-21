@@ -2,11 +2,11 @@
 import { ref, onMounted } from 'vue'
 
 import { useApiStore } from '@/stores/api'
-
-import * as immich from 'immich-sdk'
-import AssetMetadata from './AssetMetadata.vue'
-
 const api = useApiStore()
+api.setupDefaults(immich.defaults)
+
+import * as immich from '@immich/sdk'
+import AssetMetadata from './AssetMetadata.vue'
 
 const props = defineProps<{
   assetId: string
@@ -24,14 +24,11 @@ function assetPage() {
 }
 
 async function downloadAsset() {
-  const response = await new immich.AssetApi(api.config).downloadFile(props.assetId, undefined, {
-    method: 'POST',
-    responseType: 'blob'
-  })
+  const response = await immich.downloadFile({ id: props.assetId })
 
   const filename = props.meta.originalPath.split('/').reverse()[0]
 
-  const objectUrl = window.URL.createObjectURL(response.data)
+  const objectUrl = window.URL.createObjectURL(response)
   const link = document.createElement('a')
   link.href = objectUrl
   link.setAttribute('download', filename)
@@ -40,13 +37,10 @@ async function downloadAsset() {
 }
 
 async function fetchThumbnail(id: string): Promise<Blob> {
-  const response = await new immich.AssetApi(api.config).getAssetThumbnail(
-    id,
-    immich.ThumbnailFormat.Webp,
-    undefined,
-    { responseType: 'blob' }
-  )
-  return response.data
+  return await immich.getAssetThumbnail({
+    id: id,
+    format: immich.ThumbnailFormat.Webp
+  })
 }
 
 function loaded() {

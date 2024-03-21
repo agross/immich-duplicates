@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue'
-import axios, { AxiosError } from 'axios'
 
-import { useApiStore } from '@/stores/api'
 import { useDataStore } from '@/stores/data'
 
-import * as immich from 'immich-sdk'
+import * as immich from '@immich/sdk'
 import ImmichAsset from './ImmichAsset.vue'
 import ImmichAssetError from './ImmichAssetError.vue'
 
@@ -28,24 +26,20 @@ const msg = ref('')
 
 const data = useDataStore()
 
-const config = useApiStore().config
-const albumApi = new immich.AlbumApi(config)
-const assetApi = new immich.AssetApi(config)
-const personApi = new immich.PersonApi(config)
+import { useApiStore } from '@/stores/api'
+useApiStore().setupDefaults(immich.defaults)
 
 async function fetchAlbumInfo(id: string): Promise<immich.AlbumResponseDto[]> {
-  const response = await albumApi.getAllAlbums(undefined, id)
-  return response.data
+  return await immich.getAllAlbums({ assetId: id })
 }
 
 async function fetchMetadata(id: string): Promise<immich.AssetResponseDto> {
-  const response = await assetApi.getAssetById(id)
-  return response.data
+  return await immich.getAssetInfo({ id: id })
 }
 
 async function isPerson(id: string): Promise<boolean> {
   try {
-    await personApi.getPerson(id)
+    await immich.getPerson({ id: id })
     return true
   } catch (err: any) {
     return false
@@ -86,7 +80,7 @@ const calculateBestAssetId = () => {
   };
 
   const loadedAssetsArray = [...loadedAssets.value.values()];
-  
+
   const assetsWithLivePhoto = loadedAssetsArray.filter(asset => asset.meta.livePhotoVideoId);
 
   if (assetsWithLivePhoto.length === 1) {
@@ -156,7 +150,7 @@ async function keepBestAsset() {
     .filter((x) => !alreadyContainedIn.includes(x))
 
   const done = [...new Set(albumIds)].map(async (albumId) => {
-    await albumApi.addAssetsToAlbum(albumId, { ids: [keepId] } as unknown as immich.AddAssetsDto)
+    await immich.addAssetsToAlbum({ id: albumId, bulkIdsDto: { ids: [keepId] } })
   })
 
   try {
@@ -175,7 +169,7 @@ async function keepBestAsset() {
 
     if (anyFavorite) {
       try {
-        await assetApi.updateAsset(keepId, { isFavorite: true })
+        await immich.updateAsset({ id: keepId, updateAssetDto: { isFavorite: true } })
       } catch (err: any) {
         msg.value = `Could not make best asset ${keepId} a favorite: ${err.message}`
         return
@@ -186,7 +180,7 @@ async function keepBestAsset() {
   // 3. Delete other assets.
   if (removeIds.length) {
     try {
-      await assetApi.deleteAsset({ ids: removeIds })
+      await immich.deleteAssets({ assetBulkDeleteDto:{ ids: removeIds }})
     } catch (err: any) {
       msg.value = `Could not delete ${removeIds
         .map((id) => removeInfos.get(id)?.meta.originalFileName)
@@ -209,7 +203,7 @@ async function deleteAll() {
   const ids = [...loadedAssets.value.keys()]
 
   try {
-    await assetApi.deleteAsset({ ids: ids })
+    await immich.deleteAssets({ assetBulkDeleteDto: { ids: ids } })
   } catch (err: any) {
     msg.value = `Could not delete ${ids
       .map((id) => loadedAssets.value.get(id)?.meta.originalFileName)
@@ -271,13 +265,6 @@ for (const assetId of props.assetIds) {
     }
 
     let message: string = err.message
-
-    if (axios.isAxiosError(err)) {
-      const ae = err as AxiosError
-      const data = ae.response?.data as any
-      message += `: ${data.message}`
-    }
-
     assetLoadErrors.value.set(assetId, message)
   }
 }
