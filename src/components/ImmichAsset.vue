@@ -6,7 +6,8 @@ import {
   ThumbnailFormat,
   defaults,
   downloadFile,
-  getAssetThumbnail
+  getAssetThumbnail,
+  deleteAssets
 } from '@immich/sdk'
 
 import { useApiStore } from '@/stores/api'
@@ -24,7 +25,7 @@ const props = defineProps<{
 }>()
 
 const imageUrl = ref('')
-
+const msg = ref('')
 
 function assetPage() {
   return `${api.baseUrl}/search?query=%7B"originalFileName"%3A"${props.meta.originalFileName}"%7D`
@@ -41,6 +42,15 @@ async function downloadAsset() {
   link.setAttribute('download', filename)
   document.body.appendChild(link)
   link.click()
+}
+
+async function deleteAsset() {
+  try {
+    await deleteAssets({ assetBulkDeleteDto: { ids: [props.assetId] } })
+  } catch (err: any) {
+    msg.value = `Could not delete: ${err}`
+    return
+  }
 }
 
 async function fetchThumbnail(id: string): Promise<Blob> {
@@ -60,20 +70,24 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="asset" :class="{ best: best }">
-    <a :href="assetPage()" target="_blank">
-      <img :src="imageUrl" @load="loaded" alt="Asset thumbnail" />
+  <div class="asset"
+       :class="{ best: best }">
+    <a :href="assetPage()"
+       target="_blank">
+      <img :src="imageUrl"
+           @load="loaded"
+           alt="Asset thumbnail" />
     </a>
 
     <button @click="downloadAsset">Download</button>
+    <button @click="deleteAsset">Delete</button>
+    <p v-if="msg.length">{{ msg }}</p>
 
-    <AssetMetadata
-      :asset-id="assetId"
-      :meta="meta"
-      :albums="albums"
-      :best="best"
-      :highlight-file-name="highlightFileName"
-    />
+    <AssetMetadata :asset-id="assetId"
+                   :meta="meta"
+                   :albums="albums"
+                   :best="best"
+                   :highlight-file-name="highlightFileName" />
   </div>
 </template>
 
