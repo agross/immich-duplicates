@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-import * as immich from '@immich/sdk'
+import type { AssetResponseDto, AlbumResponseDto } from '@immich/sdk';
+import { defaults} from '@immich/sdk'
 
 import { useApiStore } from '@/stores/api'
-useApiStore().setupDefaults(immich.defaults)
+useApiStore().setupDefaults(defaults)
 
 const props = defineProps<{
   assetId: string
-  meta: immich.AssetResponseDto
-  albums: immich.AlbumResponseDto[]
+  meta: AssetResponseDto
+  albums: AlbumResponseDto[]
   best: boolean
   highlightFileName: boolean
 }>()

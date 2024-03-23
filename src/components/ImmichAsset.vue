@@ -1,17 +1,24 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
+import type { AssetResponseDto, AlbumResponseDto } from '@immich/sdk';
+import {
+  ThumbnailFormat,
+  defaults,
+  downloadFile,
+  getAssetThumbnail
+} from '@immich/sdk'
+
 import { useApiStore } from '@/stores/api'
 const api = useApiStore()
-api.setupDefaults(immich.defaults)
+api.setupDefaults(defaults)
 
-import * as immich from '@immich/sdk'
 import AssetMetadata from './AssetMetadata.vue'
 
 const props = defineProps<{
   assetId: string
-  meta: immich.AssetResponseDto
-  albums: immich.AlbumResponseDto[]
+  meta: AssetResponseDto
+  albums: AlbumResponseDto[]
   best: boolean
   highlightFileName: boolean
 }>()
@@ -24,7 +31,7 @@ function assetPage() {
 }
 
 async function downloadAsset() {
-  const response = await immich.downloadFile({ id: props.assetId })
+  const response = await downloadFile({ id: props.assetId })
 
   const filename = props.meta.originalPath.split('/').reverse()[0]
 
@@ -37,9 +44,9 @@ async function downloadAsset() {
 }
 
 async function fetchThumbnail(id: string): Promise<Blob> {
-  return await immich.getAssetThumbnail({
+  return await getAssetThumbnail({
     id: id,
-    format: immich.ThumbnailFormat.Webp
+    format: ThumbnailFormat.Webp
   })
 }
 

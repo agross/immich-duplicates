@@ -3,7 +3,16 @@ import { computed, onBeforeMount, onBeforeUnmount, ref } from 'vue'
 
 import { useDataStore } from '@/stores/data'
 
-import * as immich from '@immich/sdk'
+import type { AssetResponseDto, AlbumResponseDto } from '@immich/sdk'
+import {
+  addAssetsToAlbum,
+  defaults,
+  deleteAssets,
+  getAllAlbums,
+  getAssetInfo,
+  getPerson,
+  updateAsset
+} from '@immich/sdk'
 import ImmichAsset from './ImmichAsset.vue'
 import ImmichAssetError from './ImmichAssetError.vue'
 
@@ -15,8 +24,8 @@ const props = defineProps<{
 }>()
 
 type AssetInfo = {
-  meta: immich.AssetResponseDto
-  albums: immich.AlbumResponseDto[]
+  meta: AssetResponseDto
+  albums: AlbumResponseDto[]
 }
 
 const loadedAssets = ref(new Map<string, AssetInfo>())
@@ -27,19 +36,19 @@ const msg = ref('')
 const data = useDataStore()
 
 import { useApiStore } from '@/stores/api'
-useApiStore().setupDefaults(immich.defaults)
+useApiStore().setupDefaults(defaults)
 
-async function fetchAlbumInfo(id: string): Promise<immich.AlbumResponseDto[]> {
-  return await immich.getAllAlbums({ assetId: id })
+async function fetchAlbumInfo(id: string): Promise<AlbumResponseDto[]> {
+  return await getAllAlbums({ assetId: id })
 }
 
-async function fetchMetadata(id: string): Promise<immich.AssetResponseDto> {
-  return await immich.getAssetInfo({ id: id })
+async function fetchMetadata(id: string): Promise<AssetResponseDto> {
+  return await getAssetInfo({ id: id })
 }
 
 async function isPerson(id: string): Promise<boolean> {
   try {
-    await immich.getPerson({ id: id })
+    await getPerson({ id: id })
     return true
   } catch (err: any) {
     return false
@@ -150,7 +159,7 @@ async function keepBestAsset() {
     .filter((x) => !alreadyContainedIn.includes(x))
 
   const done = [...new Set(albumIds)].map(async (albumId) => {
-    await immich.addAssetsToAlbum({ id: albumId, bulkIdsDto: { ids: [keepId] } })
+    await addAssetsToAlbum({ id: albumId, bulkIdsDto: { ids: [keepId] } })
   })
 
   try {
@@ -169,7 +178,7 @@ async function keepBestAsset() {
 
     if (anyFavorite) {
       try {
-        await immich.updateAsset({ id: keepId, updateAssetDto: { isFavorite: true } })
+        await updateAsset({ id: keepId, updateAssetDto: { isFavorite: true } })
       } catch (err: any) {
         msg.value = `Could not make best asset ${keepId} a favorite: ${err.message}`
         return
@@ -180,7 +189,7 @@ async function keepBestAsset() {
   // 3. Delete other assets.
   if (removeIds.length) {
     try {
-      await immich.deleteAssets({ assetBulkDeleteDto:{ ids: removeIds }})
+      await deleteAssets({ assetBulkDeleteDto:{ ids: removeIds }})
     } catch (err: any) {
       msg.value = `Could not delete ${removeIds
         .map((id) => removeInfos.get(id)?.meta.originalFileName)
@@ -203,7 +212,7 @@ async function deleteAll() {
   const ids = [...loadedAssets.value.keys()]
 
   try {
-    await immich.deleteAssets({ assetBulkDeleteDto: { ids: ids } })
+    await deleteAssets({ assetBulkDeleteDto: { ids: ids } })
   } catch (err: any) {
     msg.value = `Could not delete ${ids
       .map((id) => loadedAssets.value.get(id)?.meta.originalFileName)
