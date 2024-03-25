@@ -24,6 +24,8 @@ const props = defineProps<{
   highlightFileName: boolean
 }>()
 
+const emit = defineEmits(['assetDeleted'])
+
 const imageUrl = ref('')
 const msg = ref('')
 
@@ -47,6 +49,7 @@ async function downloadAsset() {
 async function deleteAsset() {
   try {
     await deleteAssets({ assetBulkDeleteDto: { ids: [props.assetId] } })
+    emit('assetDeleted')
   } catch (err: any) {
     msg.value = `Could not delete: ${err}`
     return

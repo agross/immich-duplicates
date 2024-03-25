@@ -227,6 +227,10 @@ function ignore() {
   data.removeGroup(props.groupIndex)
 }
 
+function assetDeleted(assetId : string) {
+  loadedAssets.value.delete(assetId)
+}
+
 function keyDown(ev: KeyboardEvent) {
   switch (ev.key.toLowerCase()) {
     case 'k':
@@ -308,6 +312,7 @@ if (loadedAssets.value.size < 2) {
         :albums="loadedAssets.get(assetId)!.albums"
         :best="bestAssetId == assetId"
         :highlight-file-name="fileNamesAreConsideredEqual"
+        @asset-deleted="assetDeleted(assetId)"
       />
 
       <ImmichAssetError
