@@ -263,8 +263,7 @@ for (const assetId of props.assetIds) {
     const albums = await fetchAlbumInfo(assetId)
 
     // Ignore assets in the Immich Trash.
-    // TODO: immich-sdk is behind the server API.
-    if ((meta as any).isTrashed) {
+    if (meta.isTrashed) {
       continue
     }
 
