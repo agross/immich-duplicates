@@ -276,14 +276,14 @@ for (const assetId of props.assetIds) {
       ignore()
     }
 
-    let message: string = err.message
+    let message: string = JSON.stringify(err)
     assetLoadErrors.value.set(assetId, message)
   }
 }
 
 // If there are not enough assets left in the group because trashed assets have
 // been ignored above, ignore the whole group.
-if (loadedAssets.value.size < 2) {
+if (assetLoadErrors.value.size == 0 && loadedAssets.value.size < 2) {
   ignore()
 }
 </script>
