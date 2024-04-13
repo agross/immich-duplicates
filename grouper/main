@@ -44,6 +44,7 @@ begin
     paths.reset
 
     hsh[fp] = paths.map { |p| File.basename(p[0], '.*') }
+                   .map { |p| p.sub(/-preview$/, '')}
                    .sort
   ensure
     paths.close unless paths.nil?
