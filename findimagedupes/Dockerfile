@@ -9,6 +9,7 @@ RUN apt-get update \
                libpng-dev \
                libtiff5-dev \
                libheif-dev \
+               imagemagick \
     && rm -rf /var/lib/apt/lists/* \
     && go install gitlab.com/opennota/findimagedupes@latest
 

@@ -6,7 +6,8 @@ Find image and video duplicates in Immich.
    Alternatively, you may use docker as outlined in the next step.
 
 1. Run `findimagedupes` against your Immich thumbnails directory scanning the
-   large JPEG thumbnails.
+   large previews. These can be either WebP or JPEG files, depending on your
+   Immich settings.
 
    ```sh
    $ "$HOME/go/bin/findimagedupes" --prune \
@@ -14,7 +15,8 @@ Find image and video duplicates in Immich.
                                    --prune \
                                    --no-compare \
                                    --recurse \
-                                   --exclude '\.webp$' \
+                                   --exclude '-[0-9A-Fa-f]{12}\.webp$' \
+                                   --exclude '-thumbnail\.(webp|jpeg)$' \
                                    /path/to/immich/thumbs/<your user ID>
    ```
 
@@ -30,9 +32,18 @@ Find image and video duplicates in Immich.
                       --fingerprints /output/dupes.db \
                       --recurse \
                       --no-compare \
-                      --exclude '\.webp$' \
+                      --exclude '-[0-9A-Fa-f]{12}\.webp$' \
+                      --exclude '-thumbnail\.(webp|jpeg)$' \
                       /thumbs/<your user ID>
    ```
+
+   In case you're wondering what the `--exclude` parameters mean:
+
+   * `-[0-9A-Fa-f]{12}\.webp$` excludes thumbnails created by Immich < 1.102
+     that were always in WebP format
+   * `-thumbnail\.(webp|jpeg)$` excludes thumbnails created by Immich >=
+     [1.102](https://github.com/immich-app/immich/releases/tag/v1.102.0) that
+     can be either JPEG or WebP and always have the `-thumbnail` suffix
 
 1. The resulting `dupes.db` is a SQLite database. Group the duplicates as a
    JSON document using the provided Ruby script.
