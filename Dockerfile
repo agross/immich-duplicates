@@ -14,6 +14,6 @@ FROM nginx:alpine AS runtime
 COPY --from=build /app/dist /usr/share/nginx/html
 COPY ./nginx/nginx.conf /etc/nginx
 
-ENV IMMICH_URL=https://immich.example.com
+ENV IMMICH_URL=https://example.com
 RUN mkdir -p /etc/nginx/templates
 COPY ./nginx/immich-proxy.conf.template /etc/nginx/templates
