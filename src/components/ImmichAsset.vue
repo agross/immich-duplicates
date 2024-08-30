@@ -31,7 +31,7 @@ const imageUrl = ref('')
 const msg = ref('')
 
 function assetPage() {
-  return `${api.baseUrl}/search?query=%7B"originalFileName"%3A"${props.meta.originalFileName}"%7D`
+  return `${api.baseUrl}/photos/${props.assetId}`
 }
 
 async function download() {
