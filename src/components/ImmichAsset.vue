@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
-import type { AssetResponseDto, AlbumResponseDto } from '@immich/sdk';
 import {
-  ThumbnailFormat,
+  type AssetResponseDto,
+  type AlbumResponseDto,
+  AssetMediaSize,
   defaults,
-  downloadFile,
-  getAssetThumbnail,
+  downloadAsset,
+  viewAsset,
   deleteAssets
 } from '@immich/sdk'
 
@@ -33,8 +34,8 @@ function assetPage() {
   return `${api.baseUrl}/search?query=%7B"originalFileName"%3A"${props.meta.originalFileName}"%7D`
 }
 
-async function downloadAsset() {
-  const response = await downloadFile({ id: props.assetId })
+async function download() {
+  const response = await downloadAsset({ id: props.assetId })
 
   const filename = props.meta.originalPath.split('/').reverse()[0]
 
@@ -57,9 +58,9 @@ async function deleteAsset() {
 }
 
 async function fetchThumbnail(id: string): Promise<Blob> {
-  return await getAssetThumbnail({
+  return await viewAsset({
     id: id,
-    format: ThumbnailFormat.Webp
+    size: AssetMediaSize.Thumbnail
   })
 }
 
@@ -73,24 +74,22 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="asset"
-       :class="{ best: best }">
-    <a :href="assetPage()"
-       target="_blank">
-      <img :src="imageUrl"
-           @load="loaded"
-           alt="Asset thumbnail" />
+  <div class="asset" :class="{ best: best }">
+    <a :href="assetPage()" target="_blank">
+      <img :src="imageUrl" @load="loaded" alt="Asset thumbnail" />
     </a>
 
-    <button @click="downloadAsset">Download</button>
+    <button @click="download">Download</button>
     <button @click="deleteAsset">Delete</button>
     <p v-if="msg.length">{{ msg }}</p>
 
-    <AssetMetadata :asset-id="assetId"
-                   :meta="meta"
-                   :albums="albums"
-                   :best="best"
-                   :highlight-file-name="highlightFileName" />
+    <AssetMetadata
+      :asset-id="assetId"
+      :meta="meta"
+      :albums="albums"
+      :best="best"
+      :highlight-file-name="highlightFileName"
+    />
   </div>
 </template>
 
